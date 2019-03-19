@@ -49,8 +49,8 @@ class ConfigValidator:
             return False
 
         # Load all accounts with corresponding public key from the blockchain
-        accounts = wallet.getAllAccounts(pubkey)
-        account_names = [account['name'] for account in accounts]
+        accounts = wallet.getAccountsFromPublicKey(pubkey)
+        account_names = [Account(account)['name'] for account in accounts]
 
         if account in account_names:
             return True
