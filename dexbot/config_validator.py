@@ -5,6 +5,7 @@ from bitshares.account import Account
 from bitshares.asset import Asset
 from bitshares.exceptions import KeyAlreadyInStoreException, AccountDoesNotExistsException, AssetDoesNotExistsException
 from bitsharesbase.account import PrivateKey
+from graphenecommon.exceptions import KeyNotFound
 
 
 class ConfigValidator:
@@ -37,11 +38,12 @@ class ConfigValidator:
         """
         wallet = self.bitshares.wallet
         if not private_key:
-            # Check if the account is already in the database
-            accounts = wallet.getAccounts()
-            if any(account == d['name'] for d in accounts):
-                return True
-            return False
+            # Private key was not given, try to get one from database and check if found one
+            try:
+                private_key = wallet.getOwnerKeyForAccount(account)
+            except KeyNotFound:
+                # Private key was not found from database and needs to be added by user
+                return False
 
         try:
             pubkey = format(PrivateKey(private_key).pubkey, self.bitshares.prefix)
@@ -54,8 +56,8 @@ class ConfigValidator:
 
         if account in account_names:
             return True
-        else:
-            return False
+
+        return False
 
     def validate_private_key_type(self, account, private_key):
         """ Check whether private key type is "active" or "owner"
