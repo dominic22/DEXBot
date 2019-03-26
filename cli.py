@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+import cProfile
 from dexbot import cli
 
 if __name__ == '__main__':
-    cli.main()
+
+    cProfile.run('cli.main()', 'restats')
+
+    #cli.main()
