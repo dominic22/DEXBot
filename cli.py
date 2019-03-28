@@ -5,6 +5,6 @@ from dexbot import cli
 
 if __name__ == '__main__':
 
-    cProfile.run('cli.main()', 'restats')
+    cProfile.run('cli.main()', 'cli-stats')
 
     #cli.main()
