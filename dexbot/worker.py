@@ -4,6 +4,7 @@ import logging
 import os.path
 import threading
 import copy
+import requests
 
 import dexbot.errors as errors
 from dexbot.strategies.base import StrategyBase
@@ -64,6 +65,7 @@ class WorkerInfrastructure(threading.Thread):
                 })
                 continue
             try:
+                print("#################Worker init_workers")
                 strategy_class = getattr(
                     importlib.import_module(worker["module"]),
                     'Strategy'
@@ -84,6 +86,7 @@ class WorkerInfrastructure(threading.Thread):
         self.config_lock.release()
 
     def update_notify(self):
+        print("##############Worker is update_notify")
         if not self.config['workers']:
             log.critical("No workers configured to launch, exiting")
             raise errors.NoWorkersAvailable()
@@ -94,6 +97,7 @@ class WorkerInfrastructure(threading.Thread):
             # Update the notification instance
             self.notify.reset_subscriptions(list(self.accounts), list(self.markets))
         else:
+            print("##############Worker is initialized")
             # Initialize the notification instance
             self.notify = Notify(
                 markets=list(self.markets),
@@ -184,6 +188,11 @@ class WorkerInfrastructure(threading.Thread):
         """
         if worker_name:
             try:
+                market = self.config['workers'][worker_name]['market']
+                print("#####kill specific worker" + market)
+                
+                r = requests.post("http://localhost:3333/metrics",  { 'market': market })
+                print("#####sent to server " + market)
                 # Kill only the specified worker
                 self.remove_market(worker_name)
             except KeyError:
@@ -199,6 +208,7 @@ class WorkerInfrastructure(threading.Thread):
                 self.workers[worker_name].pause()
             self.workers.pop(worker_name, None)
         else:
+            print("#####kill all worker")
             # Kill all of the workers
             if pause:
                 for worker in self.workers:

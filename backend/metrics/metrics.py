@@ -1,29 +1,37 @@
 from flask import Flask, jsonify, abort, make_response, request
 from flask_restful import Resource
+import json
 
-tasks = [
+metrics = [
     {
-        'id': 1,
-        'title': u'Buy groceries',
-        'description': u'Milk, Cheese, Pizza, Fruit, Tylenol', 
-        'done': False
-    },
-    {
-        'id': 2,
-        'title': u'Learn Python',
-        'description': u'Need to find a good Python tutorial on the web', 
-        'done': False
+    'chain_id': "1",
+    'signature': "",
+    'account_name' : "Dominic1",
+    'strategy' : {
+        'strategy': "dexbot.strategies.staggered_orders",
+        'base_asset' : "DEXBOT1",
+        'quote_asset' : "DEXBOT2",
+        'mode': 1,
+        'order_size': 200,
+        }
     }
 ]
-
-
+'''
+enum Mode {
+  1 = Mountain,
+  2 = Neutral,
+  3 = Valley,
+  4 = Buy Slope,
+  5 = Sell Slope
+}
+'''
 class MetricsAPI(Resource):
     def get(self):
-        return jsonify({'tasks': tasks})
+        return jsonify({'tasks': metrics})
         
 class MetricAPI(Resource):
     def get(self, id):
-        task = [task for task in tasks if task['id'] == int(id)]
+        task = [task for task in metrics if task['id'] == int(id)]
         if len(task) == 0:
             print("ABORT")
             abort(404)
@@ -41,25 +49,43 @@ class MetricAPI(Resource):
         return jsonify({'task': task}), 201
 '''
 
-'''
-def abort_if_todo_doesnt_exist(todo_id):
-    if todo_id not in TODOS:
-        abort(404, message="Todo {} doesn't exist".format(todo_id))
-'''
+
+def abort_invalid_metric():
+     if not request.json or \
+         not 'chain_id' in request.json \
+         or not 'signature' in request.json \
+         or not 'account_name' in request.json \
+         or not 'strategy' in request.json:
+            print("#############################")
+            print(json.dumps(request.json))
+            abort(404, message="Could not parse metric...")
+            
+def update_existing_metric(metric):
+    if not request.json or \
+        not 'chain_id' in request.json \
+        or not 'account_name' in request.json \
+        or not 'strategy' in request.json:
+            return "Metric updated", 200
+
+def check_if_already_exists(m):
+    metric = [metric for metric in metrics if metric['account_name'] == m['account_name']]
+    return len(metric) > 0
+    #if not request.json or \
+    #    not 'chain_id' in request.json \
+    #    or not 'account_name' in request.json \
+    #    or not 'strategy' in request.json:
+    #       return "Metric updated", 200
+
 
 class AddMetricAPI(Resource):
     def post(self):
-        if not request.json or not 'title' in request.json:
-            abort(404)
-        task = {
-            'id': tasks[-1]['id'] + 1,
-            'title': request.json['title'],
-            'description': request.json.get('description', ""),
-            'done': False
-        }
-        tasks.append(task)
-        return jsonify({'task': task}), 201
-
+        abort_invalid_metric()
+        if check_if_already_exists(request.json):
+            print("Metric already exists")
+            return "Metric already exists, hence it was updated...", 200
+        metric = request.json
+        metrics.append(metric)
+        return "Metric successfully added.", 201
         
 '''
 @app.route('/v1.0/metrics', methods=['GET'])
