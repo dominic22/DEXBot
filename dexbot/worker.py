@@ -4,11 +4,12 @@ import logging
 import os.path
 import threading
 import copy
-import requests
+#import requests
 import json
 
 import dexbot.errors as errors
 from dexbot.strategies.base import StrategyBase
+from dexbot.metrics.metrics_backend_helper import addWorkerMetric
 
 from bitshares.notify import Notify
 from bitshares.instance import shared_bitshares_instance
@@ -48,37 +49,6 @@ class WorkerInfrastructure(threading.Thread):
         if os.path.exists(user_worker_path):
             sys.path.append(user_worker_path)
 
-    def sendToMetricsBackend(self, worker, config):
-        print("JSON STRAT " + json.dumps(config))
-        print("11worker worker_name " + worker['market'])
-        print("11worker account " + worker['account'])
-        print("11worker amount: " + str(worker["amount"]))
-
-        headers = {'Content-type': 'application/json', 'Accept': '*/*'}
-
-        if(worker['module'] == 'dexbot.strategies.relative_orders'):
-            strategy = {
-                'module': 'dexbot.strategies.staggered_orders',
-                'mode': 1,
-            }
-        else:
-            strategy = {
-                'module': 'dexbot.strategies.relative_orders',
-            }
-        id = worker['account'] + "_" + worker['market']
-        workerReq = {
-            'id': id,
-            'chain_id': '1',
-            'signature': '',
-            'account_name' : worker['account'],
-            'market' : worker['market'],
-            'order_size' : str(worker["amount"]),
-            'strategy' : strategy,
-        }
-        print("Sending worker to metrics backend...")
-        requests.post('https://enjf31b1lqkkq.x.pipedream.net', json=workerReq, headers=headers)
-        
-
     def init_workers(self, config):
         """ Initialize the workers
         """
@@ -108,7 +78,7 @@ class WorkerInfrastructure(threading.Thread):
                     view=self.view
                 )
 
-                self.sendToMetricsBackend(worker, config)
+                addWorkerMetric(worker, config)
 
                 self.markets.add(worker['market'])
                 self.accounts.add(worker['account'])
@@ -235,7 +205,7 @@ class WorkerInfrastructure(threading.Thread):
                 print("#####kill specific worker" + market)
                 print("#####kill specific worker" + account)
                 
-                r = requests.post("http://localhost:3333/metrics",  { 'market': market })
+                # r = requests.post("http://localhost:3333/metrics",  { 'market': market })
                 print("#####sent to server " + market)
                 # Kill only the specified worker
                 self.remove_market(worker_name)
