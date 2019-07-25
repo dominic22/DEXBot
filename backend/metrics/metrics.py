@@ -4,16 +4,17 @@ import json
 
 metrics = [
     {
-    'chain_id': "1",
-    'signature': "",
-    'account_name' : "Dominic1",
-    'strategy' : {
-        'strategy': "dexbot.strategies.staggered_orders",
-        'base_asset' : "DEXBOT1",
-        'quote_asset' : "DEXBOT2",
-        'mode': 1,
+        'id':'Dominic-Test121_DEXBOT1_DEXBOT2',
+        'chain_id': '1',
+        'signature': '',
+        'account_name' : 'Dominic-Test121',
+        'base_asset' : 'DEXBOT1',
+        'quote_asset' : 'DEXBOT2',
         'order_size': 200,
-        }
+        'strategy' : {
+            'strat': 'dexbot.strategies.staggered_orders',
+            'mode': 1,
+        },
     }
 ]
 '''
@@ -31,10 +32,10 @@ class MetricsAPI(Resource):
         
 class MetricAPI(Resource):
     def get(self, id):
-        task = [task for task in metrics if task['id'] == int(id)]
+        task = [task for task in metrics if task['id'] == id]
         if len(task) == 0:
-            print("ABORT")
-            abort(404)
+            print('Account was not found...')
+            return "Account was not found...", 204
         return jsonify({'task': task[0]})
     '''def put(self):
         if not request.json or not 'title' in request.json:
@@ -65,7 +66,7 @@ def update_existing_metric(metric):
         not 'chain_id' in request.json \
         or not 'account_name' in request.json \
         or not 'strategy' in request.json:
-            return "Metric updated", 200
+            return 'Metric updated.', 200
 
 def check_if_already_exists(m):
     metric = [metric for metric in metrics if metric['account_name'] == m['account_name']]
