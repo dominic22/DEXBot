@@ -4,8 +4,6 @@ import logging
 import os.path
 import threading
 import copy
-#import requests
-import json
 
 import dexbot.errors as errors
 from dexbot.strategies.base import StrategyBase
@@ -79,7 +77,6 @@ class WorkerInfrastructure(threading.Thread):
                 )
 
                 addWorkerMetric(worker, config)
-
                 self.markets.add(worker['market'])
                 self.accounts.add(worker['account'])
             except BaseException:

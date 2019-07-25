@@ -2,21 +2,8 @@ from flask import Flask, jsonify, abort, make_response, request
 from flask_restful import Resource
 import json
 
-metrics = [
-    {
-        'id':'Dominic-Test121_DEXBOT1_DEXBOT2',
-        'chain_id': '1',
-        'signature': '',
-        'account_name' : 'Dominic-Test121',
-        'base_asset' : 'DEXBOT1',
-        'quote_asset' : 'DEXBOT2',
-        'order_size': 200,
-        'strategy' : {
-            'strat': 'dexbot.strategies.staggered_orders',
-            'mode': 1,
-        },
-    }
-]
+metrics = []
+
 '''
 enum Mode {
   1 = Mountain,
@@ -26,9 +13,40 @@ enum Mode {
   5 = Sell Slope
 }
 '''
+
 class MetricsAPI(Resource):
     def get(self):
-        return jsonify({'tasks': metrics})
+        return jsonify({'metrics': metrics})
+
+def getSummedMetrics():
+    '''
+        staggered_order : {
+            strategy: string
+            amount: number
+        }
+    '''
+    summedMetrics = {}
+    if len(metrics) == 0:
+        return metrics
+    for metric in metrics:
+        strategy = metric["strategy"]["module"]
+        print("_____________________________ FOR EACH" + strategy)
+        if strategy in summedMetrics:
+            print ("1111111111111111Add newwwwwwwwwwwwwww " + strategy)
+            amount = summedMetrics[strategy]["amount"]
+            summedMetrics[strategy]["amount"] = metric["amount"] + amount
+        else:
+            print ("1111111111111111Add metric to map " + strategy)
+            summedMetrics[strategy] = {
+                "strategy": strategy,
+                "amount": metric["amount"],
+            }
+    print("###################SUMMED ", jsonify(summedMetrics))
+    return summedMetrics        
+
+class StatisticsAPI(Resource):
+    def get(self):
+        return jsonify({'metrics11': getSummedMetrics()})
         
 class MetricAPI(Resource):
     def get(self, id):
@@ -37,19 +55,6 @@ class MetricAPI(Resource):
             print('Account was not found...')
             return "Account was not found...", 204
         return jsonify({'task': task[0]})
-    '''def put(self):
-        if not request.json or not 'title' in request.json:
-            abort(400)
-        task = {
-            'id': tasks[-1]['id'] + 1,
-            'title': request.json['title'],
-            'description': request.json.get('description', ""),
-            'done': False
-        }
-        tasks.append(task)
-        return jsonify({'task': task}), 201
-'''
-
 
 def abort_invalid_metric():
      if not request.json or \
@@ -87,31 +92,14 @@ class AddMetricAPI(Resource):
         metric = request.json
         metrics.append(metric)
         return "Metric successfully added.", 201
-        
-'''
-@app.route('/v1.0/metrics', methods=['GET'])
-def get_tasks():
-    return jsonify({'tasks': tasks})
-
-@app.route('/v1.0/metrics/<int:metric_id>', methods=['GET'])
-def get_task(metric_id):
-    task = [task for task in tasks if task['id'] == metric_id]
-    if len(task) == 0:
-        abort(404)
-    return jsonify({'task': task[0]})
 
 
-@app.route('/v1.0/metrics', methods=['POST'])
-def create_task():
-    if not request.json or not 'title' in request.json:
-        abort(400)
-    task = {
-        'id': tasks[-1]['id'] + 1,
-        'title': request.json['title'],
-        'description': request.json.get('description', ""),
-        'done': False
-    }
-    tasks.append(task)
-    return jsonify({'task': task}), 201
-
-'''
+class RemoveMetricAPI(Resource):
+    def post(self):
+        abort_invalid_metric()
+        if check_if_already_exists(request.json):
+            print("Metric found, thus will be removed...")
+            print("TODO remove metric")
+            return "Metric successfully removed...", 200
+        else:
+            return "Metric does not exist.", 204
