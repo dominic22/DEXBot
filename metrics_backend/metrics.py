@@ -79,7 +79,7 @@ class MetricsAPI(Resource):
 
 class StatisticsAPI(Resource):
     def get(self):
-        return jsonify({'metrics11': get_summed_metrics()})
+        return jsonify({'metrics': get_summed_metrics()})
         
 class MetricAPI(Resource):
     def get(self, id):
