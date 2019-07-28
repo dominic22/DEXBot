@@ -90,17 +90,26 @@ def update_existing_metric(metric):
         or not 'strategy' in request.json:
             return 'Metric updated.', 200
 
-def check_if_already_exists(m):
+
+def get_index_of_metric(m):
     inverseMarket = getInverseMarket(m["market"])
-    metric = [metric for metric in metrics if metric['account_name'] == m['account_name'] 
-    and (metric["market"] == m["market"] or metric["market"] == inverseMarket)]
-    return len(metric) > 0
+    items = [i for i, metric in enumerate(metrics) if m["account_name"] == metric["account_name"] and (metric["market"] == m["market"] or metric["market"] == inverseMarket)]
+    if len(items) == 0:
+        return -1
+    return items[0]
+    
+def check_if_already_exists(m):
+    #metric = [metric for metric in metrics if metric['account_name'] == m['account_name'] 
+    #and (metric["market"] == m["market"] or metric["market"] == inverseMarket)]
+    #index = [index if m["account_name"] == metric["account_name"] else -1 for index, metric in enumerate(metrics)] 
+    #[i if val == x.id else -1 for i,x in enumerate(a)] 
+    index = get_index_of_metric(m)
+    return index > -1
 
 class AddMetricAPI(Resource):
     def post(self):
         abort_invalid_metric()
         if check_if_already_exists(request.json):
-            print("Metric already exists")
             return "Metric already exists, hence it was updated...", 200
         metric = request.json
         metrics.append(metric)
@@ -110,9 +119,9 @@ class AddMetricAPI(Resource):
 class RemoveMetricAPI(Resource):
     def post(self):
         abort_invalid_metric()
-        if check_if_already_exists(request.json):
-            print("Metric found, thus will be removed...")
-            print("TODO remove metric")
+        index = get_index_of_metric(request.json)
+        if index > -1:
+            del metrics[index]
             return "Metric successfully removed...", 200
         else:
             return "Metric does not exist.", 204
