@@ -18,30 +18,47 @@ class MetricsAPI(Resource):
     def get(self):
         return jsonify({'metrics': metrics})
 
+def getInverseMarket(market):
+    splittedMarket = market.split('/')
+    return splittedMarket[1] + "/" + splittedMarket[0]
+
 def getSummedMetrics():
-    '''
-        staggered_order : {
-            strategy: string
-            amount: number
-        }
-    '''
     summedMetrics = {}
     if len(metrics) == 0:
         return metrics
     for metric in metrics:
         strategy = metric["strategy"]["module"]
-        print("_____________________________ FOR EACH" + strategy)
+        market = metric["market"]
+        inverseMarket = getInverseMarket(market)
+
         if strategy in summedMetrics:
-            print ("1111111111111111Add newwwwwwwwwwwwwww " + strategy)
-            amount = summedMetrics[strategy]["amount"]
-            summedMetrics[strategy]["amount"] = metric["amount"] + amount
+            foundMarkets = [summedMarket for summedMarket in summedMetrics[strategy]["markets"] if summedMarket["market"] == market]
+            foundInverseMarkets = [summedMarket for summedMarket in summedMetrics[strategy]["markets"] if summedMarket["market"] == inverseMarket]
+            if len(foundMarkets) > 0:
+                print("Market already exists, amount will be added.")
+                summedMarket = foundMarkets[0]
+                amount = summedMarket["amount"]
+                summedMarket["amount"] = metric["amount"] + amount
+            elif len(foundInverseMarkets):
+                print("Inverse market already exists, amount will be added.")
+                summedMarket = foundInverseMarkets[0]
+                amount = summedMarket["amount"]
+                summedMarket["amount"] = metric["amount"] + amount
+            else:
+                summedMetrics[strategy]["markets"].append({
+                    "market": market,
+                    "amount": metric["amount"]
+                })
         else:
-            print ("1111111111111111Add metric to map " + strategy)
             summedMetrics[strategy] = {
                 "strategy": strategy,
-                "amount": metric["amount"],
+                "markets": [
+                    {   
+                        "amount": metric["amount"],
+                        "market": metric["market"]
+                    }
+                ]
             }
-    print("###################SUMMED ", jsonify(summedMetrics))
     return summedMetrics        
 
 class StatisticsAPI(Resource):
@@ -74,14 +91,10 @@ def update_existing_metric(metric):
             return 'Metric updated.', 200
 
 def check_if_already_exists(m):
-    metric = [metric for metric in metrics if metric['account_name'] == m['account_name']]
+    inverseMarket = getInverseMarket(m["market"])
+    metric = [metric for metric in metrics if metric['account_name'] == m['account_name'] 
+    and (metric["market"] == m["market"] or metric["market"] == inverseMarket)]
     return len(metric) > 0
-    #if not request.json or \
-    #    not 'chain_id' in request.json \
-    #    or not 'account_name' in request.json \
-    #    or not 'strategy' in request.json:
-    #       return "Metric updated", 200
-
 
 class AddMetricAPI(Resource):
     def post(self):

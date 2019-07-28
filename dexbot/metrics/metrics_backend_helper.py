@@ -20,7 +20,7 @@ def addWorkerMetric(worker, config):
         'signature': '',
         'account_name' : worker['account'],
         'market' : worker['market'],
-        'amount' : str(worker["amount"]),
+        'amount' : worker["amount"],
         'strategy' : strategy,
     }
     print("Sending worker to metrics backend...")
