@@ -1,6 +1,8 @@
-from flask import Flask, jsonify, abort, make_response, request
+from flask import Flask
 from flask_restful import Api
-from metrics import MetricsAPI, AddMetricAPI, MetricAPI, StatisticsAPI, RemoveMetricAPI
+
+# I would have expected to import from: metrics_backend.metrics_api but it doesn't work, do you know why?
+from metrics_api import MetricsAPI, AddMetricAPI, MetricAPI, StatisticsAPI, RemoveMetricAPI
 
 app = Flask(__name__)
 api = Api(app)

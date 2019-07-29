@@ -7,7 +7,7 @@ import copy
 
 import dexbot.errors as errors
 from dexbot.strategies.base import StrategyBase
-from dexbot.metrics.metrics_backend_helper import addWorkerMetric, removeWorkerMetric
+from dexbot.metrics.metrics_backend_helper import add_worker_metric, remove_worker_metric
 
 from bitshares.notify import Notify
 from bitshares.instance import shared_bitshares_instance
@@ -76,7 +76,7 @@ class WorkerInfrastructure(threading.Thread):
                     view=self.view
                 )
 
-                addWorkerMetric(worker)
+                add_worker_metric(worker)
                 self.markets.add(worker['market'])
                 self.accounts.add(worker['account'])
             except BaseException:
@@ -198,7 +198,7 @@ class WorkerInfrastructure(threading.Thread):
         if worker_name:
             try:
                 worker = self.config['workers'][worker_name]
-                removeWorkerMetric(worker)
+                remove_worker_metric(worker)
                 # Kill only the specified worker
                 self.remove_market(worker_name)
             except KeyError:
