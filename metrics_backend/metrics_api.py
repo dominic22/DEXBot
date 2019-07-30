@@ -46,6 +46,8 @@ def check_if_already_exists(m):
 
 def get_summed_metrics():
     summed_metrics = {}
+    # TODO replace amount by using account.openorders to get the liquidity
+
     if len(metrics) == 0:
         return metrics
     for metric in metrics:
