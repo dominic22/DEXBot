@@ -5,8 +5,8 @@ metrics = []
 
 
 def get_inverse_market(market):
-    splittedMarket = market.split('/')
-    return splittedMarket[1] + "/" + splittedMarket[0]
+    splitted_market = market.split('/')
+    return splitted_market[1] + "/" + splitted_market[0]
 
 
 def abort_invalid_metric():
@@ -31,9 +31,9 @@ def update_existing_metric(metric):
 
 
 def get_index_of_metric(m):
-    inverseMarket = get_inverse_market(m["market"])
+    inverse_market = get_inverse_market(m["market"])
     items = [i for i, metric in enumerate(metrics) if m["account_name"] == metric["account_name"] and (
-                metric["market"] == m["market"] or metric["market"] == inverseMarket)]
+                metric["market"] == m["market"] or metric["market"] == inverse_market)]
     if len(items) == 0:
         return -1
     return items[0]
@@ -45,36 +45,36 @@ def check_if_already_exists(m):
 
 
 def get_summed_metrics():
-    summedMetrics = {}
+    summed_metrics = {}
     if len(metrics) == 0:
         return metrics
     for metric in metrics:
         strategy = metric["strategy"]["module"]
         market = metric["market"]
-        inverseMarket = get_inverse_market(market)
+        inverse_market = get_inverse_market(market)
 
-        if strategy in summedMetrics:
-            foundMarkets = [summedMarket for summedMarket in summedMetrics[strategy]["markets"] if
-                            summedMarket["market"] == market]
-            foundInverseMarkets = [summedMarket for summedMarket in summedMetrics[strategy]["markets"] if
-                                   summedMarket["market"] == inverseMarket]
-            if len(foundMarkets) > 0:
+        if strategy in summed_metrics:
+            found_Markets = [summed_market for summed_market in summed_metrics[strategy]["markets"] if
+                            summed_market["market"] == market]
+            found_inverse_markets = [summedMarket for summedMarket in summed_metrics[strategy]["markets"] if
+                                   summedMarket["market"] == inverse_market]
+            if len(found_Markets) > 0:
                 print("Market already exists, amount will be added.")
-                summedMarket = foundMarkets[0]
-                amount = summedMarket["amount"]
-                summedMarket["amount"] = metric["amount"] + amount
-            elif len(foundInverseMarkets) > 0:
+                summed_market = found_Markets[0]
+                amount = summed_market["amount"]
+                summed_market["amount"] = metric["amount"] + amount
+            elif len(found_inverse_markets) > 0:
                 print("Inverse market already exists, amount will be added.")
-                summedMarket = foundInverseMarkets[0]
-                amount = summedMarket["amount"]
-                summedMarket["amount"] = metric["amount"] + amount
+                summed_market = found_inverse_markets[0]
+                amount = summed_market["amount"]
+                summed_market["amount"] = metric["amount"] + amount
             else:
-                summedMetrics[strategy]["markets"].append({
+                summed_metrics[strategy]["markets"].append({
                     "market": market,
                     "amount": metric["amount"]
                 })
         else:
-            summedMetrics[strategy] = {
+            summed_metrics[strategy] = {
                 "strategy": strategy,
                 "markets": [
                     {
@@ -83,7 +83,7 @@ def get_summed_metrics():
                     }
                 ]
             }
-    return summedMetrics
+    return summed_metrics
 
 
 class MetricsAPI(Resource):
